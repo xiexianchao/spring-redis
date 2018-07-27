@@ -1,7 +1,14 @@
 package com.xiechao.spring.redis.entity;
 
-public class Hobby {
+import java.io.Serializable;
+
+public class Hobby implements Serializable {
+    private static final long SerivalVersionId = 1L;
     private String name;
+
+    public Hobby(String name) {
+        this.name = name;
+    }
 
     @Override
     public String toString() {

@@ -17,33 +17,46 @@
 
     <bean id="stringRedisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
     <bean id="jdkSerializationRedisSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+    <bean id="serialUtil" class="com.xiechao.spring.redis.serial.SerialUtil"/>
 
 
-
+    <!--redisTemplate配置，设置自定义序列化方式-->
     <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
         <property name="connectionFactory" ref="connectionFactory"/>
-        <property name="keySerializer" ref="jdkSerializationRedisSerializer"/>
-        <property name="hashKeySerializer" ref="jdkSerializationRedisSerializer"/>
+         <property name="keySerializer" ref="stringRedisSerializer"/>
+        <property name="valueSerializer" ref="serialUtil"/>
+        <!--  <property name="hashKeySerializer" ref="jdkSerializationRedisSerializer"/>-->
+        <property name="hashKeySerializer" ref="serialUtil"/>
+        <property name="hashValueSerializer" ref="serialUtil"/>
     </bean>
 
-
+    <!--StringRedisTemplate配置，默认序列化方式-->
     <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
         <property name="connectionFactory" ref="connectionFactory"/>
-        <property name="keySerializer" ref="stringRedisSerializer"/>
-        <property name="hashKeySerializer" ref="stringRedisSerializer"/>
-    </bean>
+   </bean>
 
-    <bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+   <!-- 监听器1，使用自定义序列化方式，返回Object-->
+    <bean id="messageListener1" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
         <property name="delegate" >
             <bean class="com.xiechao.spring.redis.listener.RedisSubscriber"/>
         </property>
         <property name="defaultListenerMethod" value="handleMessage"/>
         <property name="stringSerializer" ref="stringRedisSerializer"/>
-        <property name="serializer" ref="stringRedisSerializer"/>
+        <property name="serializer" ref="serialUtil"/>
     </bean>
+    <!--监听器2，使用默认序列化方式，返回字符串-->
+    <!--<bean id="messagelistener2" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+        <property name="delegate">
+            <bean class="com.xiechao.spring.redis.listener.RedisSubscriber"/>
+        </property>
+        <property name="defaultListenerMethod" value="handleMessage2"/>
+        <property name="serializer" ref="stringRedisSerializer"/>
+        <property name="stringSerializer" ref="stringRedisSerializer"/>
+    </bean>-->
 
     <redis:listener-container connection-factory="connectionFactory">
-        <redis:listener ref="messageListener" method="handleMessage" topic="redis" serializer="stringRedisSerializer"/>
+        <redis:listener ref="messageListener1" method="handleMessage2" topic="redis" serializer="stringRedisSerializer"/>
+      <!--  <redis:listener ref="messageListener2" method="handleMessage2" topic="redis" serializer="stringRedisSerializer"/>-->
     </redis:listener-container>
 
 </beans>
